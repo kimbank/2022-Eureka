@@ -920,7 +920,7 @@ function hideMenu() {
     $(function(){
         $("#MENU").animate(
         {
-            bottom:"-300px",
+            bottom:"-444px",
         }, 1000);
     })
 }
