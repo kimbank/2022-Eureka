@@ -22,9 +22,9 @@ var mMainCamera;
 //The orbit controls object
 var mOrbitControls;
 //The camera startup position
-const mOrbitCamPos =  new THREE.Vector3( -18, 44, 0 );
+const mOrbitCamPos =  new THREE.Vector3( -18, 90, 0 );
 //The camera lookat target
-const mOrbitCamTarget =  new THREE.Vector3( -10, 3, 0 );
+const mOrbitCamTarget =  new THREE.Vector3( 0, 3, 0 );
 
 //The loader manager
 var mManager;
@@ -59,6 +59,9 @@ var mConfigJSON;
 
 //Initialize the engine
 Initialize();
+
+// 바닥
+var mFloorPlane
 
 //Function to initialize
 function Initialize()
@@ -157,6 +160,7 @@ function SetupEnvironment()
     //The light width and height
     var lWidth = 12, lHeight = 6;
 
+    // 조명 설정 //
     //Add a front light
     var mFrontLight = CreateAreaLight(mScene, color, intensity, new THREE.Vector2(lWidth,lHeight), IS_DEBUG ? true:false );     
     mFrontLight.rotation.copy(Vector3DegToRadian({x:90, y:45, z:-90})); 
@@ -184,15 +188,17 @@ function SetupEnvironment()
 
     //Load the floor plane textures and set wrappings
     var DTX_Floor = mTextureLoader.load("data/env/asphalt_albedo.png");
-    var NTX_Floor = mTextureLoader.load("data/env/asphalt_normal.png");    
-    var RTX_Floor = mTextureLoader.load("data/env/asphalt_rouphness.png"); 
+    var NTX_Floor = mTextureLoader.load("data/env/asphalt_normal.png");
+    var RTX_Floor = mTextureLoader.load("data/env/asphalt_rouphness.png");
     DTX_Floor.wrapS = DTX_Floor.wrapT = THREE.RepeatWrapping; DTX_Floor.repeat.set( 64, 64 );
     NTX_Floor.wrapS = NTX_Floor.wrapT = THREE.RepeatWrapping; NTX_Floor.repeat.set( 64, 64 );
-    RTX_Floor.wrapS = RTX_Floor.wrapT = THREE.RepeatWrapping; RTX_Floor.repeat.set( 64, 64 );   
+    RTX_Floor.wrapS = RTX_Floor.wrapT = THREE.RepeatWrapping; RTX_Floor.repeat.set( 64, 64 );
+
     //Create the  floor material
     var Mt_Floor = new THREE.MeshStandardMaterial({roughness:1, metalness:0, map:DTX_Floor, normalMap:NTX_Floor, roughnessMap:RTX_Floor});
+
     //Create the floor plane object and add to the scene
-    var mFloorPlane = new THREE.Mesh( new THREE.PlaneGeometry( 512, 512, 1,1 ), Mt_Floor );
+    mFloorPlane = new THREE.Mesh( new THREE.PlaneGeometry( 512, 512, 1,1 ), Mt_Floor );
     mFloorPlane.rotation.x = -Math.PI/2;
     mScene.add( mFloorPlane );
 
@@ -811,11 +817,11 @@ function SetOrbitCamera()
     mOrbitControls.enablePan = false;
     mOrbitControls.enableZoom = true; 
     mOrbitControls.enableDamping = true;
-    mOrbitControls.minPolarAngle = 0.75; //Uper
+    mOrbitControls.minPolarAngle = 0.45; //Uper
     mOrbitControls.maxPolarAngle = 1.6; //Lower
     mOrbitControls.dampingFactor = 0.07;
     mOrbitControls.rotateSpeed = 0.07;
-    mOrbitControls.minDistance = 16
+    mOrbitControls.minDistance = 16;
     mOrbitControls.maxDistance = 32;
     mOrbitControls.autoRotate = false;
     mOrbitControls.autoRotateSpeed = 0.05;
@@ -948,6 +954,8 @@ function playFloat() {
 function float_animation() {           
     step += 0.01;
     mC3DGLTF.scene.position.y = hh + ( gg * Math.abs(Math.sin(step)));
+    // 물 움직이기
+    mFloorPlane.position.y = 3
 
     if (step > 1.8 && mC3DGLTF.scene.position.y < 4.5) {
         hh = mC3DGLTF.scene.position.y
