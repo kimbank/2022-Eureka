@@ -1,5 +1,5 @@
 //Whether debuging is enabled or not
-var IS_DEBUG = true;
+var IS_DEBUG = false;
 //Whether to show fps counter or not
 var SHOW_FPS = false;
 
