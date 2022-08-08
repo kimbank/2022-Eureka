@@ -22,6 +22,10 @@
       {
         "name":"Bianco Monocerus",
         "value":"#F2F3F5"
+      },
+      {
+        "name":"Dimgray",
+        "value":"#696969"
       }
     ],
     "target":"Mt_Body"

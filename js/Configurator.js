@@ -1,5 +1,5 @@
 //Whether debuging is enabled or not
-var IS_DEBUG=false;
+var IS_DEBUG = false;
 //Whether to show fps counter or not
 var SHOW_FPS = false;
 
@@ -22,9 +22,9 @@ var mMainCamera;
 //The orbit controls object
 var mOrbitControls;
 //The camera startup position
-const mOrbitCamPos =  new THREE.Vector3( -18, 20, 30 );
+const mOrbitCamPos =  new THREE.Vector3( -18, 44, 0 );
 //The camera lookat target
-const mOrbitCamTarget =  new THREE.Vector3( 0, 3, 0 );
+const mOrbitCamTarget =  new THREE.Vector3( -10, 3, 0 );
 
 //The loader manager
 var mManager;
@@ -137,8 +137,7 @@ function Initialize()
     });    
 
 	//Recalculate context
-	OnContextResized(); 
-    
+	OnContextResized();
 }
 
 //Function to setup the environment
@@ -417,35 +416,35 @@ function AddCinemeticSequence()
     //The cinematic sequence
     var mSequence = 
     [
-        {
-            sP:{x:-28, y:-26, z:3.5},
-            eP:{x:-25, y:-23, z:3.5},
-            cR:{x:0.0, y:-45, z:5.0},
-            tD:9500
-        },
         // {
-        //     sP:{x:-18, y:0,   z:2.5},
-        //     eP:{x:-18, y:0,   z:5.5},
-        //     cR:{x:0.0, y:-90, z:0.0},
-        //     tD:5000
+        //     sP:{x:-28, y:-26, z:3.5},
+        //     eP:{x:-25, y:-23, z:3.5},
+        //     cR:{x:0.0, y:-45, z:5.0},
+        //     tD:9500
         // },
+        {
+            sP:{x:-18, y:0,   z:2.5},
+            eP:{x:-18, y:0,   z:5.5},
+            cR:{x:0.0, y:-90, z:0.0},
+            tD:5000
+        },
         // {
         //     sP:{x:-13.50, y:-3.75,  z:3.75},
         //     eP:{x:-12.00, y:-5.50,  z:4.50},
         //     cR:{x:-41.79, y:-42.36, z:-19.55},
         //     tD:7000
         // },
-        {
-            sP:{x:-10.50, y:-8.0,   z:1.50},
-            eP:{x:-14.00, y:-12.0,  z:1.00},
-            cR:{x:10.12,  y:-43.88, z:-7.06},
-            tD:7000
-        },
+        // {
+        //     sP:{x:-10.50, y:-8.0,   z:1.50},
+        //     eP:{x:-14.00, y:-12.0,  z:1.00},
+        //     cR:{x:10.12,  y:-43.88, z:-7.06},
+        //     tD:7000
+        // },
         // {
         //     sP:{x:-13,    y:-14, z:14},
         //     eP:{x:11,     y:-14, z:14},
         //     cR:{x:-38.28, y:0.0, z:0.0},
-        //     tD:12000
+        //     tD:5000
         // },
         // {
         //     sP:{x:12.85, y:-1.0,  z:4.35},
@@ -457,14 +456,14 @@ function AddCinemeticSequence()
         //     sP:{x:13, y:-4.5,  z:2.5},
         //     eP:{x:13, y:-4.5,  z:5.0},
         //     cR:{x:0,  y:58, z:5.35},
-        //     tD:7000
-        // },
-        // {
-        //     sP:{x:-3.3, y:-6.5,  z:5.0},
-        //     eP:{x:1.2, y:-6.5,   z:5.35},
-        //     cR:{x:-30.65, y:-55.53, z:-1.88},
         //     tD:5000
         // },
+        {
+            sP:{x:-3.3, y:-6.5,  z:5.0},
+            eP:{x:1.2, y:-6.5,   z:5.35},
+            cR:{x:-30.65, y:-55.53, z:-1.88},
+            tD:5000
+        },
         // {
         //     sP:{x:-13.85, y:-0.35,  z:3.15},
         //     eP:{x:-14.50, y:-1.1,   z:3.75},
@@ -810,7 +809,7 @@ function SetOrbitCamera()
     mOrbitControls = new THREE.OrbitControls(mOrbitCamera,mRenderer.domElement);
     mOrbitControls.target = mOrbitCamTarget;
     mOrbitControls.enablePan = false;
-    mOrbitControls.enableZoom = false; 
+    mOrbitControls.enableZoom = true; 
     mOrbitControls.enableDamping = true;
     mOrbitControls.minPolarAngle = 0.75; //Uper
     mOrbitControls.maxPolarAngle = 1.6; //Lower
@@ -944,9 +943,6 @@ function playFloat() {
     hh = 0;
     gg = 5;
     float_animation();
-    //////////
-    mC3DGLTF2.scene.position.z = 10
-    mC3DGLTF3.scene.position.z = -10
 }
 
 function float_animation() {           
@@ -991,13 +987,13 @@ function unfloat_animation() {
 
 function LoadPropAventador(config)
 {
-	var stpIndex = 3;//getRandomInt(0,config.body_colors.colors.length-1);
+	var stpIndex = 5;//getRandomInt(0,config.body_colors.colors.length-1);
 
 	//Choose a random body color
-	mCBodyColor = config.body_colors.colors[stpIndex].value;
+	mCBodyColor2 = config.body_colors.colors[stpIndex].value;
 
 	//Get the startup colors for configurables
-	var dfCol_Body 				= webColorToHex(mCBodyColor);
+	var dfCol_Body 				= webColorToHex(mCBodyColor2);
 	var dfCol_Mirror			= webColorToHex(config.mirror_colors.colors[0].value);
 	var dfCol_Alloys			= webColorToHex(config.wheel_colors.colors[0].value);
 	var dfCol_Caliper			= webColorToHex(config.caliper_colors.colors[0].value);	
@@ -1057,7 +1053,7 @@ function LoadPropAventador(config)
             	
             	//Assign new materials
                 if(obj.material.name=="Mt_Abs_Black_Gloss")
-                    obj.material =Mt_Abs_Black_Gloss ;
+                    obj.material = Mt_Abs_Black_Gloss ;
                 if(obj.material.name=="Mt_ABS_Black_Mat")
                     obj.material = Mt_ABS_Black_Mat;
                 if(obj.material.name=="Mt_Abs_White_Mat")
@@ -1075,13 +1071,13 @@ function LoadPropAventador(config)
                 if(obj.material.name=="Mt_Glass_Lens")
                     obj.material = Mt_Glass_Lens;
                 if(obj.material.name=="Mt_Glass_Translucent")
-                    obj.material =Mt_Glass_Translucent ;
+                    obj.material = Mt_Glass_Translucent ;
                 if(obj.material.name=="Mt_Interior_Black")
-                    obj.material =Mt_Interior_Black ;
+                    obj.material = Mt_Interior_Black ;
                 if(obj.material.name=="Mt_Metal_Black_Glossy")
                     obj.material = Mt_Metal_Black_Glossy;
                 if(obj.material.name=="Mt_Metal_Brushed")
-                    obj.material =Mt_Metal_Brushed ;
+                    obj.material = Mt_Metal_Brushed ;
                 if(obj.material.name=="Mt_Mirror")
                     obj.material = Mt_Mirror;
                 if(obj.material.name=="Mt_MirrorCover")
@@ -1095,7 +1091,7 @@ function LoadPropAventador(config)
                 if(obj.material.name=="Mt_TurnLights")
                     obj.material = Mt_TurnLights;
                 if(obj.material.name=="Mt_Tyres")
-                    obj.material =Mt_Tyres ;
+                    obj.material = Mt_Tyres ;
                 if(obj.material.name=="Mt_WindScreens")
                     obj.material = Mt_WindScreens;
             }
@@ -1107,6 +1103,7 @@ function LoadPropAventador(config)
 
         //Add the gltf object to the scene
         mScene.add( mC3DGLTF2.scene );
+        mC3DGLTF2.scene.position.z = 15
     });
 
     gltfLoader3.load(
@@ -1118,7 +1115,7 @@ function LoadPropAventador(config)
             //Take areference of the current gltf model
             mC3DGLTF3 = gltf;
     
-            mC3DGLTF2.scene.traverse(function(obj)
+            mC3DGLTF3.scene.traverse(function(obj)
             {
                 if(obj instanceof THREE.Mesh)
                 {   
@@ -1143,13 +1140,13 @@ function LoadPropAventador(config)
                     if(obj.material.name=="Mt_Glass_Lens")
                         obj.material = Mt_Glass_Lens;
                     if(obj.material.name=="Mt_Glass_Translucent")
-                        obj.material =Mt_Glass_Translucent ;
+                        obj.material = Mt_Glass_Translucent ;
                     if(obj.material.name=="Mt_Interior_Black")
-                        obj.material =Mt_Interior_Black ;
+                        obj.material = Mt_Interior_Black ;
                     if(obj.material.name=="Mt_Metal_Black_Glossy")
                         obj.material = Mt_Metal_Black_Glossy;
                     if(obj.material.name=="Mt_Metal_Brushed")
-                        obj.material =Mt_Metal_Brushed ;
+                        obj.material = Mt_Metal_Brushed ;
                     if(obj.material.name=="Mt_Mirror")
                         obj.material = Mt_Mirror;
                     if(obj.material.name=="Mt_MirrorCover")
@@ -1163,7 +1160,7 @@ function LoadPropAventador(config)
                     if(obj.material.name=="Mt_TurnLights")
                         obj.material = Mt_TurnLights;
                     if(obj.material.name=="Mt_Tyres")
-                        obj.material =Mt_Tyres ;
+                        obj.material = Mt_Tyres ;
                     if(obj.material.name=="Mt_WindScreens")
                         obj.material = Mt_WindScreens;
                 }
@@ -1175,9 +1172,6 @@ function LoadPropAventador(config)
 
         //Add the gltf object to the scene
         mScene.add( mC3DGLTF3.scene );
+        mC3DGLTF3.scene.position.z = -15
     });
-
-
-
-    
 }
