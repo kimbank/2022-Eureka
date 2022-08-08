@@ -1,9 +1,12 @@
 //Whether debuging is enabled or not
-var IS_DEBUG = false;
+var IS_DEBUG = true;
 //Whether to show fps counter or not
 var SHOW_FPS = false;
 
-const maxLevel = 6;
+const WaterMinLevel = -0.1;
+const WaterMaxLevel = 6;
+const TubeMinScale = 0.01;
+const TubeMaxScale = 1;
 
 // flags
 var isFirstTimeToPlay = true;
@@ -30,7 +33,7 @@ var mOrbitControls;
 //The camera startup position
 const mOrbitCamPos =  new THREE.Vector3( -18, 90, 0 );
 //The camera lookat target
-const mOrbitCamTarget =  new THREE.Vector3( 0, maxLevel, 0 );
+const mOrbitCamTarget =  new THREE.Vector3( 0, WaterMaxLevel, 0 );
 
 //The loader manager
 var mManager;
@@ -57,11 +60,19 @@ var mCineShotsList=[];
 var mC3DGLTF;
 var mC3DGLTF2;
 var mC3DGLTF3;
+var mC3DGLTF4;
+
 //The current body color
 var mCBodyColor;
 
 // Water
 var mWaterPlane;
+
+// Tube
+var Tube1
+var Tube2
+var Tube3
+var Tube4
 
 //The json config object
 var mConfigJSON;
@@ -304,7 +315,7 @@ function LoadAventador(config)
 
     var Mt_AventadorAtlas       = new THREE.MeshStandardMaterial( {color: 0xffffff, roughness:0.5, metalness:0.5, envMap:mCubeMap, map:AventadorAtlas_Albedo, transparent:true} ); 
 
-    var Mt_Body                 = new THREE.MeshStandardMaterial( {name: 'Mt_Body', color: dfCol_Body, roughness:0.0, metalness:0.0, envMap:mCubeMap} );    
+    var Mt_Body                 = new THREE.MeshStandardMaterial( {name: 'Mt_Body', color: dfCol_Body, roughness:0.0, metalness:0.0, envMap:mCubeMap} );
     var Mt_BrakeCaliper        	= new THREE.MeshStandardMaterial( {name: 'Mt_BrakeCaliper', color: dfCol_Caliper, roughness:0.5, metalness:0.5, envMap:mCubeMap} );
     var Mt_Chrome               = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap} );
     var Mt_Glass_Lens           = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:0.25, envMap:mCubeMap} );
@@ -323,6 +334,40 @@ function LoadAventador(config)
     var Mt_Tyres                = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.5, metalness:0.5, envMap:mCubeMap, map:AventadorAtlas_Albedo, normalMap:AventadorAtlas_Normal} );
     var Mt_WindScreens          = new THREE.MeshStandardMaterial( {color: 0x000000, roughness:0.0, metalness:0.0, envMap:mCubeMap, transparent:true, opacity:0.25} );
     
+    // 부력체
+    var TubeGeometry = new THREE.CylinderGeometry(1.5, 1.5, 4.4, 16);
+    // var TubeMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff} );
+    var TubeMaterial = new THREE.MeshStandardMaterial( {name: 'Tube', color: 0xffffff, roughness:0.0, metalness:0.0, envMap:mCubeMap} );
+
+    Tube1 = new THREE.Mesh(TubeGeometry, TubeMaterial);
+    Tube2 = new THREE.Mesh(TubeGeometry, TubeMaterial);
+    Tube3 = new THREE.Mesh(TubeGeometry, TubeMaterial);
+    Tube4 = new THREE.Mesh(TubeGeometry, TubeMaterial);
+
+    // 튜브 위치
+    Tube1.position.copy(new THREE.Vector3(-11, 0.5, -3));
+    Tube2.position.copy(new THREE.Vector3(-11, 0.5, 3));
+    Tube3.position.copy(new THREE.Vector3(10, 0.5, -3));
+    Tube4.position.copy(new THREE.Vector3(10, 0.5, 3));
+
+    // 튜브 각도
+    Tube1.rotation.copy(Vector3DegToRadian({x:-0, y:66, z:90}));
+    Tube2.rotation.copy(Vector3DegToRadian({x:-0, y:-66, z:90}));
+    Tube3.rotation.copy(Vector3DegToRadian({x:-0, y:-66, z:90}));
+    Tube4.rotation.copy(Vector3DegToRadian({x:-0, y:66, z:90}));
+
+    // 초기 스케일
+    Tube1.scale.set(0.01, 0.01, 0.01);
+    Tube2.scale.set(0.01, 0.01, 0.01);
+    Tube3.scale.set(0.01, 0.01, 0.01);
+    Tube4.scale.set(0.01, 0.01, 0.01);
+
+    // 씬에 추가
+    // mScene.add( Tube1 );
+    // mScene.add( Tube2 );
+    // mScene.add( Tube3 );
+    // mScene.add( Tube4 );
+
     //The gltf object loader
     var gltfLoader = new THREE.GLTFLoader(mManager);
 
@@ -343,7 +388,7 @@ function LoadAventador(config)
             	
             	//Assign new materials
                 if(obj.material.name=="Mt_Abs_Black_Gloss")
-                    obj.material =Mt_Abs_Black_Gloss ;
+                    obj.material = Mt_Abs_Black_Gloss ;
                 if(obj.material.name=="Mt_ABS_Black_Mat")
                     obj.material = Mt_ABS_Black_Mat;
                 if(obj.material.name=="Mt_Abs_White_Mat")
@@ -361,13 +406,13 @@ function LoadAventador(config)
                 if(obj.material.name=="Mt_Glass_Lens")
                     obj.material = Mt_Glass_Lens;
                 if(obj.material.name=="Mt_Glass_Translucent")
-                    obj.material =Mt_Glass_Translucent ;
+                    obj.material = Mt_Glass_Translucent ;
                 if(obj.material.name=="Mt_Interior_Black")
-                    obj.material =Mt_Interior_Black ;
+                    obj.material = Mt_Interior_Black ;
                 if(obj.material.name=="Mt_Metal_Black_Glossy")
                     obj.material = Mt_Metal_Black_Glossy;
                 if(obj.material.name=="Mt_Metal_Brushed")
-                    obj.material =Mt_Metal_Brushed ;
+                    obj.material = Mt_Metal_Brushed ;
                 if(obj.material.name=="Mt_Mirror")
                     obj.material = Mt_Mirror;
                 if(obj.material.name=="Mt_MirrorCover")
@@ -381,26 +426,30 @@ function LoadAventador(config)
                 if(obj.material.name=="Mt_TurnLights")
                     obj.material = Mt_TurnLights;
                 if(obj.material.name=="Mt_Tyres")
-                    obj.material =Mt_Tyres ;
+                    obj.material = Mt_Tyres ;
                 if(obj.material.name=="Mt_WindScreens")
                     obj.material = Mt_WindScreens;
-
-
-            }					
-
-			
+            }
 			//If this is a rim object and not the first type
             if(obj.name.includes('Obj_Rim') && !obj.name.includes(config.wheel_designs.designs[0].value))            	
             	obj.visible=false;
+            
+            mC3DGLTF.scene.add( Tube1 )
+            mC3DGLTF.scene.add( Tube2 )
+            mC3DGLTF.scene.add( Tube3 )
+            mC3DGLTF.scene.add( Tube4 )
         });
 
 
 
         //Add the gltf object to the scene
         mScene.add( mC3DGLTF.scene );
+        
+        // 최적화 시도
+        // mC3DGLTF4 = mC3DGLTF.scene.clone()
+        // mScene.add( mC3DGLTF4.scene )
+        // mScene.add( mC3DGLTF.scene.clone() )
     });
-
-    // mC3DGLTF.position = 4
 }
 
 //Function will be called with load progress
@@ -864,7 +913,7 @@ function SetOrbitCamera()
 
 /*------------------------------------------------------------
                         HELPER FUNCTIONS
- -----------------------------------------------------------*/
+-----------------------------------------------------------*/
 //Function to create an area light
 function CreateAreaLight(scene, color, intensity, size, visible)
 {
@@ -891,7 +940,7 @@ function CreateAreaLight(scene, color, intensity, size, visible)
 }
 
  //Function to convert vector3 from degree to radian
- function Vector3DegToRadian(_vector3)
+function Vector3DegToRadian(_vector3)
 {
     //The per dgree converter
     var degree = Math.PI/180;
@@ -951,6 +1000,7 @@ function getRandomInt(min, max)
 var step;
 var hh;
 var gg;
+var isSunk = false;
 
 function hideMenu() {
 
@@ -978,41 +1028,90 @@ function playFloat() {
 
     if (isFirstTimeToPlay) {
         // 카메라 아래로 옮기는 코드
-        mCineCamera.position.set(0, maxLevel, 0);
+        mCineCamera.position.set(0, WaterMaxLevel, 0);
         console.log("화면")
     }
 
+    isSunk = false;
     step = 0;
     hh = 0;
-    gg = 5;
-    float_animation();
+    gg = 3.7;
+    // float_animation();
+    sink();
 
     isFloat = true;
 }
 
-function float_animation() {           
-    step += 0.01;
+function float_animation() {
+    step += 0.0001;
+    var tmptmp = Math.abs(Math.sin(step));
+
+    // 수심 상승
+    // mWaterPlane.position.y = hh +  ( gg * Math.abs(Math.sin(step)));
+
 
     // 차 움직이기
     mC3DGLTF.scene.position.y = hh + ( gg * Math.abs(Math.sin(step)));
 
-    // 수심 상승
-    mWaterPlane.position.y = hh + ( gg * Math.abs(Math.sin(step)));
+    // 부력체 스케일 증가
+    if (Tube1.scale.x < 1) {
+        var tstmp = Tube1.scale.x;
+        tstmp += 0.0007;
+        Tube1.scale.set(tstmp, tstmp, tstmp);
+        Tube2.scale.set(tstmp, tstmp, tstmp);
+        Tube3.scale.set(tstmp, tstmp, tstmp);
+        Tube4.scale.set(tstmp, tstmp, tstmp);
+    }
 
-    if (step > 1.8 && mC3DGLTF.scene.position.y < 4.5) {
+    if (step > 3 && mC3DGLTF.scene.position.y < 5) {
+        console.log(mC3DGLTF.scene.position.y)
         hh = mC3DGLTF.scene.position.y
         step = 0;
         gg = 0.5;
     }
 
     if (step > 2) {
-        console.log("ended!!!")
-
         revealMenu();
         return;
     }
 
     requestAnimationFrame(float_animation);
+}
+
+function sink() {
+    if (mWaterPlane.position.y > 1) {
+        float_animation();
+    }
+
+    if (mWaterPlane.position.y < WaterMaxLevel) {
+        // tstmp += 0.07;
+        mWaterPlane.position.y += 0.02;
+    }
+
+    if (mWaterPlane.position.y > WaterMaxLevel - 2) {
+        return;
+    }
+
+    requestAnimationFrame(sink);
+}
+
+function downscale_tube() {
+    if (Tube1.scale.x > -0.09) {
+        var tstmp = Tube1.scale.x;
+        tstmp -= 0.07;
+        Tube1.scale.set(tstmp, tstmp, tstmp);
+        Tube2.scale.set(tstmp, tstmp, tstmp);
+        Tube3.scale.set(tstmp, tstmp, tstmp);
+        Tube4.scale.set(tstmp, tstmp, tstmp);
+    }
+
+    if (Tube1.scale.x < 0.001) {
+        revealMenu();
+        mWaterPlane.position.y = -0.01;
+        return;
+    }
+
+    requestAnimationFrame(downscale_tube);
 }
 
 function playUnfloat() {
@@ -1022,22 +1121,30 @@ function playUnfloat() {
 
     unfloat_animation();
 
+    // downscale_tube();
+
     isFloat = false;
 }
 
 function unfloat_animation() {
     // 차 하강
     mC3DGLTF.scene.position.y -= 0.03
-    mWaterPlane.position.y -= 0.03
+    mWaterPlane.position.y -= 0.04
 
     // 수심 하강
-
-    if (mC3DGLTF.scene.position.y <= 0) {
+    if (mC3DGLTF.scene.position.y < 0) {
         mC3DGLTF.scene.position.y = 0;
+        mWaterPlane.position.y = -0.01;
 
-        revealMenu();
+        downscale_tube();
+        // revealMenu();
         return;
     }
+
+    // 부력체 스케일 감소
+    // if (mC3DGLTF.scene.position.y < 1) {
+    //     downscale_tube();
+    // }
 
     requestAnimationFrame(unfloat_animation);
 }
