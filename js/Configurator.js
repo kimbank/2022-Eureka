@@ -3,6 +3,12 @@ var IS_DEBUG = false;
 //Whether to show fps counter or not
 var SHOW_FPS = false;
 
+const maxLevel = 6;
+
+// flags
+var isFirstTimeToPlay = true;
+var isFloat = false;
+
 //The statistics object
 var stats;
 
@@ -24,7 +30,7 @@ var mOrbitControls;
 //The camera startup position
 const mOrbitCamPos =  new THREE.Vector3( -18, 90, 0 );
 //The camera lookat target
-const mOrbitCamTarget =  new THREE.Vector3( 0, 3, 0 );
+const mOrbitCamTarget =  new THREE.Vector3( 0, maxLevel, 0 );
 
 //The loader manager
 var mManager;
@@ -39,7 +45,7 @@ var urls = [ r + "posx.jpg", r + "negx.jpg",
              r + "posy.jpg", r + "negy.jpg",
              r + "posz.jpg", r + "negz.jpg" ];
 //The Cubemap object
- var mCubeMap;
+var mCubeMap;
 
 //The Audio Trakc object
 var mAudioTrack;
@@ -54,6 +60,9 @@ var mC3DGLTF3;
 //The current body color
 var mCBodyColor;
 
+// Water
+var mWaterPlane;
+
 //The json config object
 var mConfigJSON;
 
@@ -61,7 +70,7 @@ var mConfigJSON;
 Initialize();
 
 // 바닥
-var mFloorPlane
+var mFloorPlane;
 
 //Function to initialize
 function Initialize()
@@ -163,30 +172,30 @@ function SetupEnvironment()
     // 조명 설정 //
     //Add a front light
     var mFrontLight = CreateAreaLight(mScene, color, intensity, new THREE.Vector2(lWidth,lHeight), IS_DEBUG ? true:false );     
-    mFrontLight.rotation.copy(Vector3DegToRadian({x:90, y:45, z:-90})); 
-    mFrontLight.position.copy(new THREE.Vector3( -26, 16, 0 ));
+    mFrontLight.rotation.copy(Vector3DegToRadian({x:90, y:0, z:-90})); 
+    mFrontLight.position.copy(new THREE.Vector3( -26, 32, 0 ));
 
     //Add a back light
     var mBackLight = CreateAreaLight(mScene, color, intensity, new THREE.Vector2(lWidth,lHeight), IS_DEBUG ? true:false);   
-    mBackLight.rotation.copy(Vector3DegToRadian({x:90, y:-45, z:90}));
-    mBackLight.position.copy(new THREE.Vector3( 26, 16, 0 ));
+    mBackLight.rotation.copy(Vector3DegToRadian({x:90, y:-0, z:90}));
+    mBackLight.position.copy(new THREE.Vector3( 26, 32, 0 ));
 
     //Add a Right Light
     var mRightLight = CreateAreaLight(mScene, color, intensity, new THREE.Vector2(lWidth,lHeight), IS_DEBUG ? true:false);
     mRightLight.rotation.copy(Vector3DegToRadian({x:135, y:0, z:180}));
-    mRightLight.position.copy(new THREE.Vector3(0,16,18));
+    mRightLight.position.copy(new THREE.Vector3(0,32,18));
     
     //Add a left Light
     var mLeftLight = CreateAreaLight(mScene, color, intensity, new THREE.Vector2(lWidth,lHeight), IS_DEBUG ? true:false);
     mLeftLight.rotation.copy(Vector3DegToRadian({x:45, y:0, z:0}));
-    mLeftLight.position.copy(new THREE.Vector3(0,16,-18));
+    mLeftLight.position.copy(new THREE.Vector3(0,32,-18));
 
     //Load the environmet cubemap from file
     mCubeMap = new THREE.CubeTextureLoader(mManager).load( urls );
     mCubeMap.format = THREE.RGBFormat;
     mCubeMap.mapping = THREE.CubeReflectionMapping;
 
-    //Load the floor plane textures and set wrappings
+    // 바닥 설정
     var DTX_Floor = mTextureLoader.load("data/env/asphalt_albedo.png");
     var NTX_Floor = mTextureLoader.load("data/env/asphalt_normal.png");
     var RTX_Floor = mTextureLoader.load("data/env/asphalt_rouphness.png");
@@ -194,19 +203,39 @@ function SetupEnvironment()
     NTX_Floor.wrapS = NTX_Floor.wrapT = THREE.RepeatWrapping; NTX_Floor.repeat.set( 64, 64 );
     RTX_Floor.wrapS = RTX_Floor.wrapT = THREE.RepeatWrapping; RTX_Floor.repeat.set( 64, 64 );
 
-    //Create the  floor material
+    // 물 설정
+    var DTX_Water = mTextureLoader.load("data/env/water_albedo2.jpg");
+    var NTX_Water = mTextureLoader.load("data/env/water_normal.jpg");
+    var RTX_Water = mTextureLoader.load("data/env/water_rouphness.jpg");
+    var Map_Water = mTextureLoader.load("data/env/water_albedo.png");
+    DTX_Water.wrapS = DTX_Water.wrapT = THREE.RepeatWrapping; DTX_Water.repeat.set( 64, 64 );
+    NTX_Water.wrapS = NTX_Water.wrapT = THREE.RepeatWrapping; NTX_Water.repeat.set( 64, 64 );
+    RTX_Water.wrapS = RTX_Water.wrapT = THREE.RepeatWrapping; RTX_Water.repeat.set( 64, 64 );
+
+    // 바닥 머테리얼 설정
     var Mt_Floor = new THREE.MeshStandardMaterial({roughness:1, metalness:0, map:DTX_Floor, normalMap:NTX_Floor, roughnessMap:RTX_Floor});
 
-    //Create the floor plane object and add to the scene
+    // 물 머테리얼 설정
+    var Mt_Water = new THREE.MeshStandardMaterial({roughness:1, metalness:0, map:DTX_Water, normalMap:NTX_Water, roughnessMap:RTX_Water, color:0x0072ff, alphaMap:Map_Water, opacity: 0.33, transparent: true});
+
+    // 바닥 객체 생성 후 씬에 추가
     mFloorPlane = new THREE.Mesh( new THREE.PlaneGeometry( 512, 512, 1,1 ), Mt_Floor );
     mFloorPlane.rotation.x = -Math.PI/2;
     mScene.add( mFloorPlane );
+
+    // 물 객체 생성 후 씬에 추가
+    mWaterPlane = new THREE.Mesh( new THREE.PlaneGeometry( 512, 512, 1,1 ), Mt_Water );
+    mWaterPlane.rotation.x = -Math.PI/2;
+    mWaterPlane.position.y = -0.44;
+    mScene.add( mWaterPlane );
 
 	var DTX_Shadow = mTextureLoader.load("data/env/fake_shadow.png");
     var mShadowPlane = new THREE.Mesh( new THREE.PlaneGeometry( 36, 18, 1,1 ), new THREE.MeshBasicMaterial({color:0xffffff, map:DTX_Shadow, transparent:true}) );
     mShadowPlane.rotation.x = -Math.PI/2;
     mShadowPlane.position.y=0.05;
     mScene.add( mShadowPlane );
+
+    // addWater()
 }
 
 //Function to skip the intro
@@ -943,19 +972,32 @@ function revealMenu() {
 }
 
 function playFloat() {
+    if (isFloat) return;
+
     hideMenu();
+
+    if (isFirstTimeToPlay) {
+        // 카메라 아래로 옮기는 코드
+        mCineCamera.position.set(0, maxLevel, 0);
+        console.log("화면")
+    }
 
     step = 0;
     hh = 0;
     gg = 5;
     float_animation();
+
+    isFloat = true;
 }
 
 function float_animation() {           
     step += 0.01;
+
+    // 차 움직이기
     mC3DGLTF.scene.position.y = hh + ( gg * Math.abs(Math.sin(step)));
-    // 물 움직이기
-    mFloorPlane.position.y = 3
+
+    // 수심 상승
+    mWaterPlane.position.y = hh + ( gg * Math.abs(Math.sin(step)));
 
     if (step > 1.8 && mC3DGLTF.scene.position.y < 4.5) {
         hh = mC3DGLTF.scene.position.y
@@ -974,13 +1016,21 @@ function float_animation() {
 }
 
 function playUnfloat() {
+    if (!isFloat) return;
+
     hideMenu();
 
     unfloat_animation();
+
+    isFloat = false;
 }
 
 function unfloat_animation() {
+    // 차 하강
     mC3DGLTF.scene.position.y -= 0.03
+    mWaterPlane.position.y -= 0.03
+
+    // 수심 하강
 
     if (mC3DGLTF.scene.position.y <= 0) {
         mC3DGLTF.scene.position.y = 0;
@@ -1026,7 +1076,7 @@ function LoadPropAventador(config)
     var Mt_Chrome               = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap} );
     var Mt_Glass_Lens           = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:0.25, envMap:mCubeMap} );
 
-    var Mt_Glass_Translucent    = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap, transparent:true, opacity:0.25} );
+    var Mt_Glass_Translucent    = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap, transparent:true, opacity:0.2} );
 
     var Mt_Interior_Black		= new THREE.MeshStandardMaterial( {color: 0x525252, roughness:0.5, metalness:0.5, envMap:mCubeMap} );
     var Mt_Metal_Black_Glossy   = new THREE.MeshStandardMaterial( {color: 0x000000, roughness:0.1, metalness:0.5, envMap:mCubeMap} );
