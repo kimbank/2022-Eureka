@@ -49,6 +49,8 @@ var mCineShotsList=[];
 
 //The current car 3d model
 var mC3DGLTF;
+var mC3DGLTF2;
+var mC3DGLTF3;
 //The current body color
 var mCBodyColor;
 
@@ -126,7 +128,8 @@ function Initialize()
         mConfigJSON = json;
 
 		//Load the aventador model
-    	LoadAventador(mConfigJSON);	
+    	LoadAventador(mConfigJSON);
+        LoadPropAventador(mConfigJSON);
 
 		//Create the cinematics
     	AddCinemeticSequence();
@@ -941,6 +944,9 @@ function playFloat() {
     hh = 0;
     gg = 5;
     float_animation();
+    //////////
+    mC3DGLTF2.scene.position.z = 10
+    mC3DGLTF3.scene.position.z = -10
 }
 
 function float_animation() {           
@@ -980,4 +986,198 @@ function unfloat_animation() {
     }
 
     requestAnimationFrame(unfloat_animation);
+}
+
+
+function LoadPropAventador(config)
+{
+	var stpIndex = 3;//getRandomInt(0,config.body_colors.colors.length-1);
+
+	//Choose a random body color
+	mCBodyColor = config.body_colors.colors[stpIndex].value;
+
+	//Get the startup colors for configurables
+	var dfCol_Body 				= webColorToHex(mCBodyColor);
+	var dfCol_Mirror			= webColorToHex(config.mirror_colors.colors[0].value);
+	var dfCol_Alloys			= webColorToHex(config.wheel_colors.colors[0].value);
+	var dfCol_Caliper			= webColorToHex(config.caliper_colors.colors[0].value);	
+
+    var AventadorAtlas_Albedo   = LoadTextureCorrected(mTextureLoader, "data/aventador/AventadorAtlas_Albedo.png");
+    var AventadorAtlas_Normal	= LoadTextureCorrected(mTextureLoader, "data/aventador/AventadorAtlas_Normal.png");
+    var LR_Brake_Albedo         = LoadTextureCorrected(mTextureLoader, "data/aventador/LR_Brake_Albedo.png");     
+    var LR_Turn_Albedo          = LoadTextureCorrected(mTextureLoader, "data/aventador/LR_Turn_Albedo.png");      
+    var LR_Reverse_Albedo       = LoadTextureCorrected(mTextureLoader, "data/aventador/LR_Reverse_Albedo.png");   
+    var LR_Generic_Normal       = LoadTextureCorrected(mTextureLoader, "data/aventador/LR_Generic_Normal.png");  
+	
+    //Create the necessary materials
+    var Mt_Abs_Black_Gloss      = new THREE.MeshStandardMaterial( {color: 0x000000, roughness:0.0, metalness:0.0, envMap:mCubeMap} );
+    var Mt_ABS_Black_Mat        = new THREE.MeshStandardMaterial( {color: 0x000000, roughness:0.5, metalness:0.5, envMap:mCubeMap} );
+    var Mt_Abs_White_Mat        = new THREE.MeshStandardMaterial( {color: 0xffffff, roughness:0.0, metalness:0.0, envMap:mCubeMap} );    
+    var Mt_AlloyWheels			= new THREE.MeshStandardMaterial( {name:  'Mt_AlloyWheels', color: dfCol_Alloys, roughness:0.1, metalness:0.5, envMap:mCubeMap });
+
+    var Mt_AventadorAtlas       = new THREE.MeshStandardMaterial( {color: 0xffffff, roughness:0.5, metalness:0.5, envMap:mCubeMap, map:AventadorAtlas_Albedo, transparent:true} ); 
+
+    var Mt_Body                 = new THREE.MeshStandardMaterial( {name: 'Mt_Body', color: dfCol_Body, roughness:0.0, metalness:0.0, envMap:mCubeMap} );    
+    var Mt_BrakeCaliper        	= new THREE.MeshStandardMaterial( {name: 'Mt_BrakeCaliper', color: dfCol_Caliper, roughness:0.5, metalness:0.5, envMap:mCubeMap} );
+    var Mt_Chrome               = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap} );
+    var Mt_Glass_Lens           = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:0.25, envMap:mCubeMap} );
+
+    var Mt_Glass_Translucent    = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap, transparent:true, opacity:0.25} );
+
+    var Mt_Interior_Black		= new THREE.MeshStandardMaterial( {color: 0x525252, roughness:0.5, metalness:0.5, envMap:mCubeMap} );
+    var Mt_Metal_Black_Glossy   = new THREE.MeshStandardMaterial( {color: 0x000000, roughness:0.1, metalness:0.5, envMap:mCubeMap} );
+    var Mt_Metal_Brushed        = new THREE.MeshStandardMaterial( {color: 0x555555, roughness:0.0, metalness:1.0, envMap:mCubeMap} );
+    var Mt_Mirror               = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.0, metalness:1.0, envMap:mCubeMap} );   
+    var Mt_MirrorCover			= new THREE.MeshStandardMaterial( {name:  'Mt_MirrorCover', color: dfCol_Body, roughness:0.0, metalness:0.0, envMap:mCubeMap });
+    var Mt_Reflector_BL         = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:1.0, metalness:0.0, envMap:mCubeMap, map:LR_Brake_Albedo, normalMap:LR_Generic_Normal} );
+    var Mt_Reflector_RL         = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:1.0, metalness:0.0, envMap:mCubeMap, map:LR_Reverse_Albedo, normalMap:LR_Generic_Normal} );
+    var Mt_Reflector_TL         = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:1.0, metalness:0.0, envMap:mCubeMap, map:LR_Turn_Albedo, normalMap:LR_Generic_Normal} );  
+    var Mt_TurnLights           = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.5, metalness:0.5, envMap:mCubeMap} );   
+    var Mt_Tyres                = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, roughness:0.5, metalness:0.5, envMap:mCubeMap, map:AventadorAtlas_Albedo, normalMap:AventadorAtlas_Normal} );
+    var Mt_WindScreens          = new THREE.MeshStandardMaterial( {color: 0x000000, roughness:0.0, metalness:0.0, envMap:mCubeMap, transparent:true, opacity:0.25} );
+    
+    //The gltf object loader
+    var gltfLoader2 = new THREE.GLTFLoader(mManager);
+    var gltfLoader3 = new THREE.GLTFLoader(mManager);
+
+    // Load a glTF resource
+    gltfLoader2.load(
+    // resource URL
+    'data/aventador/aventador.gltf',
+    // called when the resource is loaded
+    function ( gltf ) 
+    {
+        //Take areference of the current gltf model
+        mC3DGLTF2 = gltf;
+
+        mC3DGLTF2.scene.traverse(function(obj)
+        {
+            if(obj instanceof THREE.Mesh)
+            {   
+            	
+            	//Assign new materials
+                if(obj.material.name=="Mt_Abs_Black_Gloss")
+                    obj.material =Mt_Abs_Black_Gloss ;
+                if(obj.material.name=="Mt_ABS_Black_Mat")
+                    obj.material = Mt_ABS_Black_Mat;
+                if(obj.material.name=="Mt_Abs_White_Mat")
+                    obj.material = Mt_Abs_White_Mat;
+                if(obj.material.name=="Mt_AlloyWheels")
+                    obj.material = Mt_AlloyWheels;
+                if(obj.material.name=="Mt_AventadorAtlas")
+                    obj.material = Mt_AventadorAtlas;
+                if(obj.material.name=="Mt_Body")
+                    obj.material = Mt_Body;
+                if(obj.material.name=="Mt_BrakeCaliper")
+                    obj.material = Mt_BrakeCaliper;
+                if(obj.material.name=="Mt_Chrome")
+                    obj.material = Mt_Chrome;
+                if(obj.material.name=="Mt_Glass_Lens")
+                    obj.material = Mt_Glass_Lens;
+                if(obj.material.name=="Mt_Glass_Translucent")
+                    obj.material =Mt_Glass_Translucent ;
+                if(obj.material.name=="Mt_Interior_Black")
+                    obj.material =Mt_Interior_Black ;
+                if(obj.material.name=="Mt_Metal_Black_Glossy")
+                    obj.material = Mt_Metal_Black_Glossy;
+                if(obj.material.name=="Mt_Metal_Brushed")
+                    obj.material =Mt_Metal_Brushed ;
+                if(obj.material.name=="Mt_Mirror")
+                    obj.material = Mt_Mirror;
+                if(obj.material.name=="Mt_MirrorCover")
+                    obj.material = Mt_MirrorCover;
+                if(obj.material.name=="Mt_Reflector_BL")
+                    obj.material = Mt_Reflector_BL;
+                if(obj.material.name=="Mt_Reflector_RL")
+                    obj.material = Mt_Reflector_RL;
+                if(obj.material.name=="Mt_Reflector_TL")
+                    obj.material = Mt_Reflector_TL;
+                if(obj.material.name=="Mt_TurnLights")
+                    obj.material = Mt_TurnLights;
+                if(obj.material.name=="Mt_Tyres")
+                    obj.material =Mt_Tyres ;
+                if(obj.material.name=="Mt_WindScreens")
+                    obj.material = Mt_WindScreens;
+            }
+
+			//If this is a rim object and not the first type
+            if(obj.name.includes('Obj_Rim') && !obj.name.includes(config.wheel_designs.designs[0].value))            	
+            	obj.visible=false;
+        });
+
+        //Add the gltf object to the scene
+        mScene.add( mC3DGLTF2.scene );
+    });
+
+    gltfLoader3.load(
+        // resource URL
+        'data/aventador/aventador.gltf',
+        // called when the resource is loaded
+        function ( gltf ) 
+        {
+            //Take areference of the current gltf model
+            mC3DGLTF3 = gltf;
+    
+            mC3DGLTF2.scene.traverse(function(obj)
+            {
+                if(obj instanceof THREE.Mesh)
+                {   
+                    
+                    //Assign new materials
+                    if(obj.material.name=="Mt_Abs_Black_Gloss")
+                        obj.material =Mt_Abs_Black_Gloss ;
+                    if(obj.material.name=="Mt_ABS_Black_Mat")
+                        obj.material = Mt_ABS_Black_Mat;
+                    if(obj.material.name=="Mt_Abs_White_Mat")
+                        obj.material = Mt_Abs_White_Mat;
+                    if(obj.material.name=="Mt_AlloyWheels")
+                        obj.material = Mt_AlloyWheels;
+                    if(obj.material.name=="Mt_AventadorAtlas")
+                        obj.material = Mt_AventadorAtlas;
+                    if(obj.material.name=="Mt_Body")
+                        obj.material = Mt_Body;
+                    if(obj.material.name=="Mt_BrakeCaliper")
+                        obj.material = Mt_BrakeCaliper;
+                    if(obj.material.name=="Mt_Chrome")
+                        obj.material = Mt_Chrome;
+                    if(obj.material.name=="Mt_Glass_Lens")
+                        obj.material = Mt_Glass_Lens;
+                    if(obj.material.name=="Mt_Glass_Translucent")
+                        obj.material =Mt_Glass_Translucent ;
+                    if(obj.material.name=="Mt_Interior_Black")
+                        obj.material =Mt_Interior_Black ;
+                    if(obj.material.name=="Mt_Metal_Black_Glossy")
+                        obj.material = Mt_Metal_Black_Glossy;
+                    if(obj.material.name=="Mt_Metal_Brushed")
+                        obj.material =Mt_Metal_Brushed ;
+                    if(obj.material.name=="Mt_Mirror")
+                        obj.material = Mt_Mirror;
+                    if(obj.material.name=="Mt_MirrorCover")
+                        obj.material = Mt_MirrorCover;
+                    if(obj.material.name=="Mt_Reflector_BL")
+                        obj.material = Mt_Reflector_BL;
+                    if(obj.material.name=="Mt_Reflector_RL")
+                        obj.material = Mt_Reflector_RL;
+                    if(obj.material.name=="Mt_Reflector_TL")
+                        obj.material = Mt_Reflector_TL;
+                    if(obj.material.name=="Mt_TurnLights")
+                        obj.material = Mt_TurnLights;
+                    if(obj.material.name=="Mt_Tyres")
+                        obj.material =Mt_Tyres ;
+                    if(obj.material.name=="Mt_WindScreens")
+                        obj.material = Mt_WindScreens;
+                }
+    
+            //If this is a rim object and not the first type
+            if(obj.name.includes('Obj_Rim') && !obj.name.includes(config.wheel_designs.designs[0].value))            	
+                obj.visible=false;
+        });
+
+        //Add the gltf object to the scene
+        mScene.add( mC3DGLTF3.scene );
+    });
+
+
+
+    
 }
